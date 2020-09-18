@@ -1,0 +1,529 @@
+.PROGRAM area_testing0()
+;
+; ABSTRACT: 
+;
+; INPUTS:      
+;
+; OUTPUTS:     
+;
+; SIDE EFFECTS:
+;
+; DATA STRUCT: 
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+;* Copyright (c) 2020 by {company name}
+
+
+.END
+
+.PROGRAM area.coor.1()
+;
+; ABSTRACT:   Coordenates of the points of velocity and precision test
+;
+; INPUTS:     None
+;
+; OUTPUTS:    None   
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+
+
+        GLOBAL REAL coorx[], coory[]
+        
+        coorx[0] = 270
+        coorx[1] = 366
+        coorx[2] = 462
+        
+        coory[0] = 192
+        coory[1] = 144
+        coory[2] = 96
+        coory[3] = 48
+        coory[4] = 0
+        coory[5] = -48
+        coory[6] = -96
+        coory[7] = -144
+        coory[8] = -192
+        
+        
+        RETURN
+.END
+
+.PROGRAM area.coor.2()
+;
+; ABSTRACT:   Coordenates of the points of the assembly test
+;
+; INPUTS:     None
+;
+; OUTPUTS:    None   
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+        GLOBAL REAL coorx[], coory[]
+
+        coorx[0] = 236.112
+        coory[0] = 109.44
+        
+        coorx[1] = 236.112
+        coory[1] = 65.664
+        
+        coorx[2] = 236.112
+        coory[2] = 21.888
+        
+        coorx[3] = 236.112
+        coory[3] = -21.888
+        
+        coorx[4] = 236.112
+        coory[4] = -65.664
+        
+        coorx[5] = 236.112
+        coory[5] = -109.44
+        
+        coorx[6] = 236.112
+        coory[6] = -225.888
+        
+        coorx[7] = 259.728
+        coory[7] = -225.888
+        
+        coorx[8] = 283.344
+        coory[8] = -225.888
+        
+        coorx[9] = 306.960
+        coory[9] = -225.888
+        
+        coorx[10] = 330.576
+        coory[10] = -225.888
+        
+        coorx[11] = 354.192
+        coory[11] = -225.888
+        
+        coorx[12] = 377.808
+        coory[12] = -225.888
+        
+        coorx[13] = 401.424
+        coory[13] = -225.888
+        
+        coorx[14] = 425.040
+        coory[14] = -225.888
+        
+        coorx[15] = 448.656
+        coory[15] = -225.888
+        
+        coorx[16] = 472.272
+        coory[16] = -225.888
+        
+        coorx[17] = 495.888
+        coory[17] = -225.888
+        
+        coorx[18] = 495.888
+        coory[18] = 109.44
+        
+        coorx[19] = 495.888
+        coory[19] = 65.664
+        
+        coorx[20] = 495.888
+        coory[20] = 21.888
+        
+        coorx[21] = 495.888
+        coory[21] = -21.888
+        
+        coorx[22] = 495.888
+        coory[22] = -65.664
+        
+        coorx[23] = 495.888
+        coory[23] = -109.44
+        
+        coorx[24] = 335.760
+        coory[24] = 40.320
+        
+        coorx[25] = 396.240
+        coory[25] = 40.320
+        
+        coorx[26]= 335.760
+        coory[26]= 0
+        
+        coorx[27] = 396.240
+        coory[27] = 0
+        
+        coorx[28] = 335.760
+        coory[28] = -40.320
+        
+        coorx[29] = 396.240
+        coory[29] = -40.320
+        
+        coorx[30] = 366
+        coory[30] = 120
+        
+        
+
+.END
+
+.PROGRAM area.init()
+;
+; ABSTRACT:   Initialize variables and robot control 
+;
+; INPUTS:     None
+;
+; OUTPUTS:    None   
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+
+        GLOBAL REAL rob.run[], rob.number[]
+        AUTO REAL code
+        SPEED 120 ALWAYS
+        rob.run[0] = TRUE
+
+; Change the default vision timeout
+
+        PARAMETER VTIMEOUT = 10
+
+;Ensure power is enabled before attaching
+
+        WHILE NOT SWITCH(POWER) DO
+            TYPE "Press the flashing high-power button on the front panel", /U1
+            ENABLE POWER
+            WAIT
+            IF (NOT rob.run[0]) THEN
+                HALT
+            END
+        END
+
+; Attach the robot so it can be moved
+
+        DETACH ()
+        SELECT ROBOT = rob.number[0]
+        ATTACH (0, 1)
+        code = IOSTAT(0)
+        IF (code < 0) THEN
+            TYPE "Unable to attach the robot: ", code
+            rob.run[0] = FALSE
+            HALT
+        END
+
+        RETURN
+
+.END
+
+.PROGRAM area.main0()
+;
+; ABSTRACT:      Main robot aplication program
+;
+; INPUTS:     None
+;
+; OUTPUTS:    None
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+
+        GLOBAL REAL rob.run[], coorx[], coory[], table.z[] ;Global values
+
+        table.z[0] = 200 ;Table height
+
+        CALL area.init()
+        CALL area.move.safe()
+
+        CALL area.move.base()
+
+        CALL area.test1()
+
+        CALL area.move.safe()
+        
+        CALL area.test2()
+        
+        CALL area.move.safe()
+
+
+
+
+        RETURN
+.END
+
+.PROGRAM area.move.base()
+;
+; ABSTRACT:   Movement on the boundaries of the table
+;
+; INPUTS:     None
+;
+; OUTPUTS:    None   
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+
+        GLOBAL REAL table.z[]
+        GLOBAL LOC table.loc[]
+        AUTO REAL aux[5]
+        DECOMPOSE aux[] = HERE
+        SET table.loc[0] = TRANS(222,240.001, table.z[0],aux[3],aux[4],aux[5])
+
+        APPROS table.loc[0], 10
+        MOVES table.loc[0]
+        BREAK
+
+        SET table.loc[0] = TRANS(510,240.001, table.z[0],aux[3],aux[4],aux[5])
+
+        APPROS table.loc[0], 10
+        MOVES table.loc[0]
+        BREAK
+
+        SET table.loc[0] = TRANS(510,-240.001, table.z[0],aux[3],aux[4],aux[5])
+
+        APPROS table.loc[0], 10
+        MOVES table.loc[0]
+        BREAK
+
+        SET table.loc[0] = TRANS(222,-240.001, table.z[0],aux[3],aux[4],aux[5])
+
+        APPROS table.loc[0], 10
+        MOVES table.loc[0]
+        BREAK
+
+
+
+
+
+
+
+        RETURN
+.END
+
+.PROGRAM area.move.point(x, y)
+;
+; ABSTRACT:      Movement to the given x y position
+;
+; INPUTS:     x ,y position 
+;
+; OUTPUTS:    None   
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+
+        GLOBAL REAL table.z[]
+        GLOBAL LOC aux.loc[], final.loc[]
+        AUTO REAL aux[5]
+        DECOMPOSE aux[] = HERE
+        aux[2] = table.z[0]
+        SET aux.loc[] = TRANS(aux[0],aux[1],aux[2]+96,aux[3],aux[4],aux[5]) ;Sum of 96 poitns within the coordinate system is equivalent to 10 cm
+        APPROS aux.loc[0], 10
+        MOVES aux.loc[0]
+        
+
+        SET aux.loc[] = TRANS(x,y,aux[2]+96,aux[3],aux[4],aux[5])
+        APPROS aux.loc[0], 10
+        MOVES aux.loc[0]
+        
+
+        SET aux.loc[] = TRANS(x,y,aux[2],aux[3],aux[4],aux[5])
+
+        APPROS aux.loc[0], 10
+        MOVES aux.loc[0]
+
+
+        RETURN
+.END
+
+.PROGRAM area.move.safe()
+;
+; ABSTRACT:   Move the robot to the safe position 
+;
+; INPUTS:     None
+;
+; OUTPUTS:    None   
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+
+
+        GLOBAL LOC safe.loc[]
+        AUTO REAL tmp[5], pos[5]
+        AUTO REAL code, resp
+        AUTO LOC z.up.loc
+
+; Calculate the current robot location aligned with the
+; z of the safe position and move the robot to that point.
+
+        TOOL NULL
+        DECOMPOSE tmp[] = HERE
+        DECOMPOSE pos[] = safe.loc[0]
+        SET z.up.loc = TRANS(tmp[0],tmp[1],pos[2],tmp[3],tmp[4],tmp[5])
+
+; Move the robot
+
+        ;MOVE z.up.loc
+        ;BREAK
+
+; Move to the safe position
+
+        MOVE safe.loc[0]
+        BREAK
+
+; Make sure the gripper is opened
+
+        TOOL grip.tool[0]
+        CALL rob.grip_0(TRUE)
+
+        RETURN
+.END
+
+.PROGRAM area.test1()
+;
+; ABSTRACT:   Execution of the velocity and precision test
+;
+; INPUTS:     None
+;
+; OUTPUTS:    None   
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+
+
+        AUTO REAL counterx, countery
+
+        CALL area.coor.1()
+
+        
+
+        FOR counterx = 0 TO 2
+            FOR countery = 0 TO 8
+                
+                CALL area.move.point(coorx[counterx],coory[countery])
+                
+            END
+        END
+        
+        RETURN
+
+.END
+
+.PROGRAM area.test2()
+;
+; ABSTRACT:   Execution of the assembly test
+;
+; INPUTS:     None
+;
+; OUTPUTS:    None   
+;
+; MISC:  Program created in ACE version 4.0.3.150
+;
+
+
+
+        GLOBAL REAL sensors[], m_film[], cover[], asic[], aux_film[]
+        AUTO REAL s_counter, c_counter ,a_counter, m_counter
+        
+        CALL area.coor.2()
+        
+        sensors[0] = 0
+        sensors[1] = 1
+        sensors[2] = 2
+        sensors[3] = 3
+        sensors[4] = 4
+        sensors[5] = 5
+        
+        m_film[0] = 24
+        m_film[1] = 25
+        m_film[2] = 26
+        m_film[3] = 27
+        m_film[4] = 28
+        m_film[5] = 29
+        
+        cover[0] = 18
+        cover[1] = 19
+        cover[2] = 20
+        cover[3] = 21
+        cover[4] = 22
+        cover[5] = 23
+        
+        asic[0] = 6
+        asic[1] = 7
+        asic[2] = 8
+        asic[3] = 9
+        asic[4] = 10
+        asic[5] = 11
+        asic[6] = 12
+        asic[7] = 13
+        asic[8] = 14
+        asic[9] = 15
+        asic[10] = 16
+        asic[11] = 17
+        
+        s_counter = 0
+        c_counter = 0
+        a_counter = 0
+        m_counter = 0
+        
+        FOR i = 0 TO 2
+            
+            
+            
+            m_counter = 0
+            
+            
+            TYPE m_film[i]
+            TYPE coorx[m_film[i]]
+            
+            aux_film[0] = coorx[m_film[i]]-10.080
+            aux_film[1] = coory[m_film[i]]+10.080
+            
+            aux_film[2] = coorx[m_film[i]]+10.080
+            aux_film[3] = coory[m_film[i]]+10.080
+            
+            aux_film[4] = coorx[m_film[i]]-10.080
+            aux_film[5] = coory[m_film[i]]-10.080
+            
+            aux_film[6] = coorx[m_film[i]]+10.080
+            aux_film[7] = coory[m_film[i]]-10.080
+            
+            aux_film[8] = coorx[m_film[i]]-10.080
+            aux_film[9] = coory[m_film[i]]
+            
+            aux_film[10] = coorx[m_film[i]]+10.080
+            aux_film[11] = coory[m_film[i]]
+            
+            
+            
+            FOR p = 0 TO 3
+                
+                CALL area.move.point(coorx[asic[a_counter]],coory[asic[a_counter]])
+                a_counter = a_counter + 1
+                
+                CALL area.move.point(coorx[30],coory[30])
+                
+                CALL area.move.point(aux_film[m_counter], aux_film[m_counter + 1 ])
+                m_counter = m_counter + 2
+                
+            END
+            
+            FOR u = 0 TO 1
+                
+                
+                CALL area.move.point(coorx[sensors[s_counter]], coory[sensors[s_counter]])
+                s_counter = s_counter + 1
+                
+                CALL area.move.point(coorx[30],coory[30])
+                
+                CALL area.move.point(aux_film[m_counter], aux_film[m_counter + 1 ])
+                m_counter = m_counter + 2
+            END
+            m_counter = 8
+            
+            FOR r = 0 TO 1
+                CALL area.move.point(coorx[cover[c_counter]], coory[cover[c_counter]])
+                c_counter = c_counter + 1
+                
+                CALL area.move.point(coorx[30],coory[30])
+                
+                CALL area.move.point(aux_film[m_counter], aux_film[m_counter + 1 ])
+                m_counter = m_counter + 2
+            END
+            
+            
+            
+            
+        END
+        
+        RETURN
+        
+        
+
+.END
